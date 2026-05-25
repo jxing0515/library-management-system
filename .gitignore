@@ -1,0 +1,50 @@
+# --- Sensitive / Private ---
+*.zip
+*.rar
+*.7z
+黑曼巴*
+
+# --- Java Build ---
+backend/target/
+backend/*.log
+backend/.mvn/wrapper/maven-wrapper.jar
+*.class
+
+# --- IDE ---
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+.classpath
+.project
+.settings
+.sts4-cache
+
+# --- Uploaded files ---
+backend/uploads/
+
+# --- Node ---
+frontend/node_modules/
+frontend/dist/
+
+# --- HBuilder/5+ App ---
+5app/unpackage/
+5app/.hbuilderx/
+
+# --- Duplicate code ---
+code/
+
+# --- OpenCode ---
+.omo/
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+
+# --- Local tools ---
+export-code.bat
+export-code.ps1
+
+# --- Logs ---
+*.log

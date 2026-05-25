@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>智慧图书管理系统</title>
+    <link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+    <div class="app-shell">
+
+        <!-- ======== App Header ======== -->
+        <header class="app-header" id="appHeader">
+            <div class="header-back" id="headerBack" onclick="Router.navigate('dashboard')">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </div>
+            <div class="header-title" id="headerTitle">智慧图书</div>
+        </header>
+
+        <!-- ======== Main Content ======== -->
+        <div class="app-content" id="appContent">
+
+            <!-- Dashboard -->
+            <div class="page-container" id="page-dashboard">
+                <div id="dashboard-content"></div>
+            </div>
+
+            <!-- Books -->
+            <div class="page-container" id="page-books">
+                <div id="books-content"></div>
+            </div>
+
+            <!-- Book Form -->
+            <div class="page-container" id="page-book-form">
+                <div id="book-form-content"></div>
+            </div>
+
+            <!-- Borrows (Admin) -->
+            <div class="page-container" id="page-borrows">
+                <div id="borrows-content"></div>
+            </div>
+
+            <!-- Users (Admin) -->
+            <div class="page-container" id="page-users">
+                <div id="users-content"></div>
+            </div>
+
+            <!-- Categories (Admin) -->
+            <div class="page-container" id="page-categories">
+                <div id="categories-content"></div>
+            </div>
+
+            <!-- My Borrows -->
+            <div class="page-container" id="page-my-borrows">
+                <div id="my-borrows-content"></div>
+            </div>
+
+            <!-- Favorites -->
+            <div class="page-container" id="page-favorites">
+                <div id="favorites-content"></div>
+            </div>
+
+            <!-- Recommendations -->
+            <div class="page-container" id="page-recommendations">
+                <div id="recommendations-content"></div>
+            </div>
+
+            <!-- Profile -->
+            <div class="page-container" id="page-profile">
+                <div id="profile-content"></div>
+            </div>
+
+            <!-- Login (no tabbar/header) -->
+            <div class="page-container" id="page-login">
+                <div id="login-content"></div>
+            </div>
+        </div>
+
+        <!-- ======== Bottom Tab Bar ======== -->
+        <nav class="app-tabbar" id="appTabbar">
+            <div class="tab-item active" data-page="dashboard" onclick="Router.navigate('dashboard')">
+                <span class="tab-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                </span>
+                <span>首页</span>
+            </div>
+            <div class="tab-item" data-page="books" onclick="Router.navigate('books')">
+                <span class="tab-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                </span>
+                <span>图书</span>
+            </div>
+            <div class="tab-item" data-page="my-borrows" onclick="Router.navigate('my-borrows')">
+                <span class="tab-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                </span>
+                <span>借阅</span>
+            </div>
+            <div class="tab-item" data-page="recommendations" onclick="Router.navigate('recommendations')">
+                <span class="tab-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                </span>
+                <span>推荐</span>
+            </div>
+            <div class="tab-item" data-page="profile" onclick="Router.navigate('profile')">
+                <span class="tab-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                </span>
+                <span>我的</span>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/api.js"></script>
+    <script src="js/store.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/router.js"></script>
+
+    <!-- Pages -->
+    <script src="js/pages/login.js"></script>
+    <script src="js/pages/dashboard.js"></script>
+    <script src="js/pages/books.js"></script>
+    <script src="js/pages/book-form.js"></script>
+    <script src="js/pages/borrows.js"></script>
+    <script src="js/pages/users.js"></script>
+    <script src="js/pages/categories.js"></script>
+    <script src="js/pages/my-borrows.js"></script>
+    <script src="js/pages/favorites.js"></script>
+    <script src="js/pages/recommendations.js"></script>
+    <script src="js/pages/profile.js"></script>
+
+    <!-- App Init -->
+    <script src="js/app.js"></script>
+
+    <script type="text/javascript">
+        document.addEventListener('plusready', function() {
+            console.log('5+App runtime ready');
+        });
+    </script>
+</body>
+</html>
