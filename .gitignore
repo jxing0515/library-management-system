@@ -32,9 +32,6 @@ frontend/dist/
 5app/unpackage/
 5app/.hbuilderx/
 
-# --- Duplicate code ---
-code/
-
 # --- OpenCode ---
 .omo/
 
