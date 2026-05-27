@@ -48,7 +48,7 @@ var PageDashboard = (function() {
           '<div class="welcome-row">' +
             '<div class="welcome-avatar">' +
               (user.avatar ? '<img src="' + Utils.escapeHtml(Utils.resolveImageUrl(user.avatar)) + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />' :
-              (Store.getDisplayName().charAt(0) || 'U')) +
+              '<div class="avatar-placeholder" style="width:100%;height:100%;border-radius:50%;background:linear-gradient(135deg,#409eff,#337ecc);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:600">' + (Store.getDisplayName().charAt(0) || 'U') + '</div>') +
             '</div>' +
             '<div class="welcome-text">' +
               '<h3>欢迎回来，' + Utils.escapeHtml(Store.getDisplayName()) + '</h3>' +

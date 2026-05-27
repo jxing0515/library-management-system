@@ -150,7 +150,6 @@ public class RecommendationService {
             log.warn("AI API 未配置 (api.key = {})", apiKey);
             log.info("降级为随机推荐模式 (Fallback)");
             this.lastRecommendMode = userRecords.isEmpty() ? "random" : "category";
-            this.lastRecommendMode = userRecords.isEmpty() ? "random" : "category";
             return getFallbackRecommendations(userRecords, limit);
         }
 

@@ -46,11 +46,6 @@
               <span class="info-label">手机</span>
               <span class="info-value">{{ userStore.user?.phone || '未设置' }}</span>
             </div>
-            <div class="info-item">
-              <el-icon color="#909399"><Calendar /></el-icon>
-              <span class="info-label">注册时间</span>
-              <span class="info-value">{{ userStore.user?.createdAt ? formatDate(userStore.user.createdAt) : '-' }}</span>
-            </div>
           </div>
         </el-card>
       </el-col>
@@ -112,7 +107,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
-import { getUser, updateUser, uploadAvatar } from '@/api/user'
+import { getUser, updateUser, uploadAvatar, updatePassword } from '@/api/user'
 import { ElMessage } from 'element-plus'
 
 const userStore = useUserStore()
@@ -194,6 +189,23 @@ async function handleFileChange(e) {
 }
 
 async function saveProfile() {
+  const email = form.value.email?.trim()
+  const phone = form.value.phone?.trim()
+  if (!email && !phone) {
+    ElMessage.warning('手机号或邮箱至少填写一项')
+    saving.value = false
+    return
+  }
+  if (email && email.indexOf('@') === -1) {
+    ElMessage.error('请输入有效的邮箱地址')
+    saving.value = false
+    return
+  }
+  if (phone && !/^1\d{10}$/.test(phone)) {
+    ElMessage.error('请输入有效的手机号（11位，以1开头）')
+    saving.value = false
+    return
+  }
   saving.value = true
   try {
     const res = await updateUser(userStore.user.id, form.value)
@@ -224,9 +236,13 @@ async function changePassword() {
     ElMessage.error('两次输入的密码不一致')
     return
   }
+  if (passwordForm.value.newPassword.length < 6) {
+    ElMessage.error('密码至少 6 位')
+    return
+  }
   changingPwd.value = true
   try {
-    const res = await updateUser(userStore.user.id, { password: passwordForm.value.newPassword })
+    const res = await updatePassword(userStore.user.id, passwordForm.value.newPassword)
     if (res.code === 200) {
       ElMessage.success('密码修改成功')
       passwordForm.value.newPassword = ''
@@ -248,6 +264,9 @@ onMounted(async () => {
       form.value.displayName = res.data.displayName || ''
       form.value.email = res.data.email || ''
       form.value.phone = res.data.phone || ''
+      if (res.data.avatar) {
+        userStore.setUserAvatar(res.data.avatar)
+      }
     }
   } catch (e) {}
 })

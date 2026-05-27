@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.entity.Category;
+import com.example.demo.repository.BookRepository;
 import com.example.demo.repository.CategoryRepository;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -9,9 +10,11 @@ import java.util.List;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final BookRepository bookRepository;
 
-    public CategoryService(CategoryRepository categoryRepository) {
+    public CategoryService(CategoryRepository categoryRepository, BookRepository bookRepository) {
         this.categoryRepository = categoryRepository;
+        this.bookRepository = bookRepository;
     }
 
     public List<Category> findAll() {
@@ -38,6 +41,10 @@ public class CategoryService {
 
     public void delete(Long id) {
         var category = findById(id);
+        var booksInCategory = bookRepository.findByCategory(category);
+        if (!booksInCategory.isEmpty()) {
+            throw new RuntimeException("该分类下有 " + booksInCategory.size() + " 本图书，无法删除。请先将这些图书移动到其他分类，再尝试删除。");
+        }
         categoryRepository.delete(category);
     }
 }

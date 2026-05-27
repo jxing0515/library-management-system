@@ -24,7 +24,7 @@ public class AuthController {
             LoginResponse response = authService.login(request);
             return ApiResponse.success("登录成功", response);
         } catch (RuntimeException e) {
-            return ApiResponse.error(401, e.getMessage());
+            return ApiResponse.error(400, e.getMessage());
         }
     }
 

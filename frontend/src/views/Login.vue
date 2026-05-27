@@ -222,6 +222,14 @@ const validateConfirmPass = (rule, value, callback) => {
   }
 }
 
+const validateContact = (rule, value, callback) => {
+  if (!regForm.email && !regForm.phone) {
+    callback(new Error('手机号或邮箱至少填写一项'))
+  } else {
+    callback()
+  }
+}
+
 const regRules = {
   username: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
@@ -234,6 +242,12 @@ const regRules = {
   confirmPassword: [
     { required: true, message: '请确认密码', trigger: 'blur' },
     { validator: validateConfirmPass, trigger: 'blur' },
+  ],
+  email: [
+    { validator: validateContact, trigger: 'blur' },
+  ],
+  phone: [
+    { validator: validateContact, trigger: 'blur' },
   ],
 }
 

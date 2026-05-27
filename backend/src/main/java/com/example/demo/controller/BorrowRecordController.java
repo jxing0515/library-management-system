@@ -34,8 +34,9 @@ public class BorrowRecordController {
     @GetMapping("/search")
     public ApiResponse<List<BorrowRecord>> search(
             @RequestParam(required = false) Long userId,
-            @RequestParam(required = false) String status) {
-        return ApiResponse.success(borrowRecordService.search(userId, status));
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String keyword) {
+        return ApiResponse.success(borrowRecordService.search(userId, status, keyword));
     }
 
     @PostMapping("/borrow")

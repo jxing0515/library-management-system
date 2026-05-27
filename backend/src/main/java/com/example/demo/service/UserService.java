@@ -38,9 +38,7 @@ public class UserService {
         if (user.getPhone() != null) existing.setPhone(user.getPhone());
         if (user.getStatus() != null) existing.setStatus(user.getStatus());
         if (user.getRole() != null) existing.setRole(user.getRole());
-        if (user.getPassword() != null && !user.getPassword().isEmpty()) {
-            existing.setPassword(AuthService.encryptPassword(user.getPassword()));
-        }
+        // Password cannot be changed via the general update API - use updatePassword() instead
         return userRepository.save(existing);
     }
 
@@ -51,5 +49,11 @@ public class UserService {
 
     public User updateUser(User user) {
         return userRepository.save(user);
+    }
+
+    public void updatePassword(Long id, String newPassword) {
+        var user = findById(id);
+        user.setPassword(AuthService.encryptPassword(newPassword));
+        userRepository.save(user);
     }
 }

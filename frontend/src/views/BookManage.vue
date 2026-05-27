@@ -2,15 +2,33 @@
   <div class="book-manage">
     <div class="page-header">
       <h2 class="page-title">图书管理</h2>
-      <el-button type="primary" @click="goAdd">
-        <el-icon><Plus /></el-icon>新增图书
-      </el-button>
+      <div class="header-actions">
+        <el-input
+          v-model="searchKeyword"
+          placeholder="搜索书名 / 作者 / ISBN"
+          clearable
+          style="width:220px"
+          @keyup.enter="handleSearch"
+        >
+          <template #prefix><el-icon><Search /></el-icon></template>
+        </el-input>
+        <el-select v-model="searchCategoryId" placeholder="全部分类" clearable style="width:160px" @change="handleSearch">
+          <el-option v-for="c in categories" :key="c.id" :label="c.name" :value="c.id" />
+        </el-select>
+        <el-button type="primary" @click="handleSearch">
+          <el-icon><Search /></el-icon>搜索
+        </el-button>
+        <el-button @click="resetSearch">重置</el-button>
+        <el-button type="primary" @click="goAdd">
+          <el-icon><Plus /></el-icon>新增图书
+        </el-button>
+      </div>
     </div>
 
     <el-card shadow="never" class="table-card">
       <el-empty v-if="books.length === 0 && !loading" description="暂无图书" :image-size="120" />
 
-      <el-table v-else :data="books" stripe style="width:100%" v-loading="loading" @row-click="showDetail">
+      <el-table v-else :data="pagedBooks" stripe style="width:100%" v-loading="loading" @row-click="showDetail">
         <el-table-column label="封面" width="80">
           <template #default="{ row }">
 <div class="table-cover">
@@ -40,6 +58,17 @@
         </el-table-column>
       </el-table>
     </el-card>
+
+    <div class="pagination-wrapper" v-if="books.length > pageSize">
+      <el-pagination
+        v-model:current-page="currentPage"
+        v-model:page-size="pageSize"
+        :total="books.length"
+        :page-sizes="[10, 20, 50]"
+        layout="total, sizes, prev, pager, next, jumper"
+        background
+      />
+    </div>
 
     <!-- Detail Dialog -->
     <el-dialog v-model="detailVisible" title="图书详情" width="600px" destroy-on-close>
@@ -75,16 +104,27 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { getBooks, deleteBook } from '@/api/book'
+import { getBooks, searchBooks, deleteBook } from '@/api/book'
+import { getCategories } from '@/api/category'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Search, Plus } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const books = ref([])
+const categories = ref([])
 const loading = ref(false)
 const detailVisible = ref(false)
 const detailBook = ref(null)
+const searchKeyword = ref('')
+const searchCategoryId = ref(null)
+const currentPage = ref(1)
+const pageSize = ref(10)
+const pagedBooks = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  return books.value.slice(start, start + pageSize.value)
+})
 
 function goAdd() {
   router.push('/books/manage/add')
@@ -96,6 +136,7 @@ function goEdit(book) {
 
 async function loadBooks() {
   loading.value = true
+  currentPage.value = 1
   try {
     const res = await getBooks()
     if (res.code === 200) {
@@ -105,6 +146,30 @@ async function loadBooks() {
   finally { loading.value = false }
 }
 
+async function handleSearch() {
+  currentPage.value = 1
+  loading.value = true
+  try {
+    const params = {}
+    if (searchKeyword.value) params.keyword = searchKeyword.value
+    if (searchCategoryId.value) params.categoryId = searchCategoryId.value
+    const res = await searchBooks(params)
+    if (res.code === 200) {
+      books.value = res.data
+    }
+  } catch (e) {
+    ElMessage.error('搜索失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+function resetSearch() {
+  searchKeyword.value = ''
+  searchCategoryId.value = null
+  loadBooks()
+}
+
 function showDetail(row) {
   detailBook.value = row
   detailVisible.value = true
@@ -112,7 +177,7 @@ function showDetail(row) {
 
 async function handleDelete(row) {
   try {
-    await ElMessageBox.confirm(`确认删除图书 "\${row.title}"？`, '删除确认', { type: 'warning' })
+    await ElMessageBox.confirm(`确认删除图书 "${row.title}"？`, '删除确认', { type: 'warning' })
     const res = await deleteBook(row.id)
     if (res.code === 200) {
       ElMessage.success('删除成功')
@@ -123,7 +188,13 @@ async function handleDelete(row) {
   } catch (e) {}
 }
 
-onMounted(loadBooks)
+onMounted(async () => {
+  loadBooks()
+  try {
+    const res = await getCategories()
+    if (res.code === 200) categories.value = res.data
+  } catch (e) {}
+})
 </script>
 
 <style scoped>
@@ -131,9 +202,12 @@ onMounted(loadBooks)
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
   margin-bottom: 20px;
 }
 .page-title { font-size: 22px; font-weight: 600; color: var(--text-color); }
+.header-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 
 .table-card {
   border-radius: 12px;

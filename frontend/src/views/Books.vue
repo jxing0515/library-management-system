@@ -33,7 +33,7 @@
 
     <!-- Book Grid -->
     <div v-if="books.length > 0" class="book-grid">
-      <div v-for="book in books" :key="book.id" class="book-card" @click="showDetail(book)">
+      <div v-for="book in pagedBooks" :key="book.id" class="book-card" @click="showDetail(book)">
         <div class="book-cover">
           <img v-if="book.coverUrl" :src="book.coverUrl" class="cover-img" />
           <div v-else class="cover-placeholder">
@@ -67,6 +67,18 @@
     </div>
 
     <el-empty v-else description="暂无图书" :image-size="120" />
+
+    <!-- Pagination -->
+    <div class="pagination-wrapper" v-if="books.length > pageSize">
+      <el-pagination
+        v-model:current-page="currentPage"
+        v-model:page-size="pageSize"
+        :total="books.length"
+        :page-sizes="[12, 24, 48]"
+        layout="total, sizes, prev, pager, next, jumper"
+        background
+      />
+    </div>
 
     <!-- Detail Dialog -->
     <el-dialog v-model="detailVisible" :title="detailBook?.title" width="700px" destroy-on-close>
@@ -106,7 +118,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive } from 'vue'
+import { ref, computed, onMounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { searchBooks, getBooks } from '@/api/book'
@@ -130,6 +142,12 @@ const searchForm = reactive({
   keyword: '',
   categoryId: null
 })
+const currentPage = ref(1)
+const pageSize = ref(12)
+const pagedBooks = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  return books.value.slice(start, start + pageSize.value)
+})
 
 // Load categories
 async function loadCategories() {
@@ -141,6 +159,7 @@ async function loadCategories() {
 // Load books
 async function loadBooks() {
   loading.value = true
+  currentPage.value = 1
   try {
     const res = await getBooks()
     if (res.code === 200) {
@@ -193,6 +212,7 @@ async function handleToggleFavorite(book) {
 // Search
 async function handleSearch() {
   loading.value = true
+  currentPage.value = 1
   try {
     const res = await searchBooks({
       keyword: searchForm.keyword || null,

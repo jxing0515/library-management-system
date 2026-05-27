@@ -16,7 +16,7 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     boolean existsByIsbn(String isbn);
 
     @Query("SELECT b FROM Book b WHERE " +
-           "(:keyword IS NULL OR b.title LIKE %:keyword% OR b.author LIKE %:keyword% OR b.isbn LIKE %:keyword%) " +
+           "(:keyword IS NULL OR b.title LIKE CONCAT('%', :keyword, '%') OR b.author LIKE CONCAT('%', :keyword, '%') OR b.isbn LIKE CONCAT('%', :keyword, '%')) " +
            "AND (:categoryId IS NULL OR b.category.id = :categoryId)")
     List<Book> searchBooks(@Param("keyword") String keyword, @Param("categoryId") Long categoryId);
 }

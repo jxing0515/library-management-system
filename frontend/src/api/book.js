@@ -29,3 +29,7 @@ export function uploadCover(id, file) {
   formData.append('file', file)
   return request.post(`/books/${id}/cover`, formData)
 }
+
+export function deleteCover(id) {
+  return request.delete(`/books/${id}/cover`)
+}

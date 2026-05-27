@@ -24,7 +24,7 @@
     </el-empty>
     <template v-else-if="viewMode === 'card'">
       <div class="fav-grid">
-        <div v-for="item in favoriteList" :key="item.id" class="fav-card">
+        <div v-for="item in pagedFavorites" :key="item.id" class="fav-card">
           <div class="fav-card-cover" @click="showDetail(item.book)">
             <img v-if="item.book.coverUrl" :src="item.book.coverUrl" class="fav-cover-img" />
             <div v-else class="fav-cover-placeholder">
@@ -56,7 +56,7 @@
       </div>
     </template>
     <el-card v-else shadow="never" style="border-radius:12px">
-      <el-table :data="favoriteList" stripe style="width:100%" empty-text="暂无收藏图书">
+      <el-table :data="pagedFavorites" stripe style="width:100%" empty-text="暂无收藏图书">
         <el-table-column label="书名" min-width="180" show-overflow-tooltip>
           <template #default="{ row }">
             <div class="book-title-cell" @click="showDetail(row.book)">
@@ -96,6 +96,18 @@
         </el-table-column>
       </el-table>
     </el-card>
+
+    <div class="pagination-wrapper" v-if="favoriteList.length > pageSize">
+      <el-pagination
+        v-model:current-page="currentPage"
+        v-model:page-size="pageSize"
+        :total="favoriteList.length"
+        :page-sizes="[10, 20, 50]"
+        layout="total, sizes, prev, pager, next, jumper"
+        background
+      />
+    </div>
+
     <el-dialog v-model="detailVisible" title="图书详情" width="650px" :close-on-click-modal="false" destroy-on-close>
       <el-row v-if="detailBook" :gutter="24">
         <el-col :span="8">
@@ -124,7 +136,7 @@
   </div>
 </template>
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { getFavorites, removeFavorite } from '@/api/favorite'
@@ -140,6 +152,12 @@ const detailVisible = ref(false)
 const detailBook = ref(null)
 const viewMode = ref('card')
 const borrowLoadingId = ref(null)
+const currentPage = ref(1)
+const pageSize = ref(10)
+const pagedFavorites = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  return favoriteList.value.slice(start, start + pageSize.value)
+})
 function formatDate(dateStr) {
   if (!dateStr) return '未知'
   return dayjs(dateStr).format('YYYY-MM-DD HH:mm')
@@ -150,6 +168,7 @@ async function loadFavorites() {
     return
   }
   loading.value = true
+  currentPage.value = 1
   try {
     const res = await getFavorites(userStore.user.id)
     if (res.code === 200) favoriteList.value = res.data
@@ -220,7 +239,7 @@ onMounted(loadFavorites)
 }
 .fav-card-cover {
   width: 110px; min-height: 155px;
-  background: linear-gradient(135deg, #f5f7fa, #ecf5ff);
+  background: var(--cover-gradient);
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0; overflow: hidden; cursor: pointer;
 }
@@ -237,7 +256,7 @@ onMounted(loadFavorites)
 .fav-card-title:hover { color: #409eff; }
 .fav-card-author { font-size: 13px; color: var(--text-secondary); }
 .fav-card-meta { display: flex; gap: 6px; flex-wrap: wrap; }
-.fav-card-time { font-size: 12px; color: #999; display: flex; align-items: center; gap: 3px; }
+.fav-card-time { font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 3px; }
 .fav-card-actions { margin-top: auto; display: flex; gap: 6px; padding-top: 6px; }
 .book-title-cell { display: flex; align-items: center; gap: 8px; cursor: pointer; }
 .table-cover { width: 36px; height: 48px; object-fit: cover; border-radius: 4px; background: #f0f0f0; }
@@ -245,7 +264,7 @@ onMounted(loadFavorites)
 .book-title-link:hover { text-decoration: underline; }
 .detail-cover {
   width: 100%; aspect-ratio: 3/4; max-height: 260px;
-  background: linear-gradient(135deg, #f5f7fa, #ecf5ff);
+  background: var(--cover-gradient);
   border-radius: 12px;
   display: flex; align-items: center; justify-content: center;
   overflow: hidden;

@@ -25,7 +25,7 @@
         <el-button type="primary" @click="$router.push('/books')">去借书</el-button>
       </el-empty>
 
-      <el-table v-else :data="records" stripe style="width:100%" v-loading="loading">
+      <el-table v-else :data="pagedRecords" stripe style="width:100%" v-loading="loading">
         <el-table-column label="书名" min-width="200" show-overflow-tooltip>
           <template #default="{ row }">{{ row.book?.title }}</template>
         </el-table-column>
@@ -62,6 +62,17 @@
           </template>
         </el-table-column>
       </el-table>
+
+      <div class="pagination-wrapper" v-if="records.length > pageSize">
+        <el-pagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :total="records.length"
+          :page-sizes="[10, 20, 50]"
+          layout="total, sizes, prev, pager, next, jumper"
+          background
+        />
+      </div>
     </el-card>
   </div>
 </template>
@@ -75,6 +86,12 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 const userStore = useUserStore()
 const records = ref([])
 const loading = ref(false)
+const currentPage = ref(1)
+const pageSize = ref(10)
+const pagedRecords = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  return records.value.slice(start, start + pageSize.value)
+})
 
 const activeCount = computed(() => records.value.filter(r => r.status === 'BORROWED').length)
 const overdueCount = computed(() => records.value.filter(r => isOverdue(r)).length)
@@ -94,6 +111,7 @@ function statusLabel(status) {
 
 async function loadData() {
   loading.value = true
+  currentPage.value = 1
   try {
     const res = await getUserBorrowRecords(userStore.user.id)
     if (res.code === 200) records.value = res.data

@@ -25,3 +25,7 @@ export function uploadAvatar(id, file) {
   formData.append('file', file)
   return request.post(`/users/${id}/avatar`, formData)
 }
+
+export function updatePassword(id, password) {
+  return request.put(`/users/${id}/password`, { password })
+}

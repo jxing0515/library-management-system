@@ -316,7 +316,7 @@ onMounted(loadRecommendations)
 }
 .rec-card-cover {
   width: 110px; min-height: 155px;
-  background: linear-gradient(135deg, #f5f7fa, #ecf5ff);
+  background: var(--cover-gradient);
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0; overflow: hidden; cursor: pointer;
   position: relative;
@@ -335,12 +335,12 @@ onMounted(loadRecommendations)
 .rec-card-title:hover { color: #409eff; }
 .rec-card-author { font-size: 13px; color: var(--text-secondary); }
 .rec-card-meta { display: flex; gap: 6px; flex-wrap: wrap; }
-.rec-card-desc { font-size: 12px; color: #999; line-height: 1.4; margin-top: 2px; }
+.rec-card-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.4; margin-top: 2px; }
 .rec-card-actions { margin-top: auto; display: flex; gap: 6px; padding-top: 8px; }
 
 .detail-cover {
   width: 100%; aspect-ratio: 3/4; max-height: 260px;
-  background: linear-gradient(135deg, #f5f7fa, #ecf5ff);
+  background: var(--cover-gradient);
   border-radius: 12px;
   display: flex; align-items: center; justify-content: center;
   overflow: hidden;

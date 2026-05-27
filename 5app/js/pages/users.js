@@ -36,10 +36,11 @@ var PageUsers = (function() {
               '<label class="form-label">显示名称</label>' +
               '<input class="form-input" id="userFormDisplayName" placeholder="请输入显示名称" />' +
             '</div>' +
+            (editUserId ? '' :
             '<div class="form-group">' +
-              '<label class="form-label">密码' + (editUserId ? '（留空不修改）' : ' *') + '</label>' +
+              '<label class="form-label">密码 *</label>' +
               '<input class="form-input" id="userFormPassword" type="password" placeholder="请输入密码" />' +
-            '</div>' +
+            '</div>') +
             '<div class="form-group">' +
               '<label class="form-label">角色</label>' +
               '<select class="form-select" id="userFormRole">' +
@@ -216,7 +217,8 @@ var PageUsers = (function() {
   function handleSaveUser() {
     var username = document.getElementById('userFormUsername').value.trim();
     var displayName = document.getElementById('userFormDisplayName').value.trim();
-    var password = document.getElementById('userFormPassword').value;
+    var passwordEl = document.getElementById('userFormPassword');
+    var password = passwordEl ? passwordEl.value : '';
     var role = document.getElementById('userFormRole').value;
     var email = document.getElementById('userFormEmail').value.trim();
     var phone = document.getElementById('userFormPhone').value.trim();
@@ -231,7 +233,8 @@ var PageUsers = (function() {
       email: email || undefined,
       phone: phone || undefined
     };
-    if (password) data.password = password;
+    // Password only for new users (field hidden in edit mode)
+    if (!editUserId && password) data.password = password;
 
     var btn = document.getElementById('userFormSaveBtn');
     btn.textContent = '保存中...';

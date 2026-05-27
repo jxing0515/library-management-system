@@ -4,6 +4,7 @@ import com.example.demo.entity.Book;
 import com.example.demo.entity.BorrowRecord;
 import com.example.demo.entity.User;
 import com.example.demo.repository.BorrowRecordRepository;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
@@ -36,8 +37,8 @@ public class BorrowRecordService {
         return borrowRecordRepository.findByUserOrderByCreatedAtDesc(user);
     }
 
-    public List<BorrowRecord> search(Long userId, String status) {
-        return borrowRecordRepository.searchRecords(userId, status);
+    public List<BorrowRecord> search(Long userId, String status, String keyword) {
+        return borrowRecordRepository.searchRecords(userId, status, keyword);
     }
 
     @Transactional
@@ -60,6 +61,7 @@ public class BorrowRecordService {
         record.setBorrowDate(LocalDate.now());
         record.setDueDate(LocalDate.now().plusDays(30));
         record.setStatus("BORROWED");
+        record.setRenewCount(0);
 
         book.setAvailable(book.getAvailable() - 1);
         bookService.update(book.getId(), book);
@@ -91,7 +93,12 @@ public class BorrowRecordService {
         if (!"BORROWED".equals(record.getStatus())) {
             throw new RuntimeException("只能续借借出中的图书");
         }
+        int currentRenew = record.getRenewCount() != null ? record.getRenewCount() : 0;
+        if (currentRenew >= 2) {
+            throw new RuntimeException("已达到最大续借次数(2次)，无法继续续借");
+        }
         record.setDueDate(record.getDueDate().plusDays(14));
+        record.setRenewCount(currentRenew + 1);
         return borrowRecordRepository.save(record);
     }
 
@@ -111,5 +118,26 @@ public class BorrowRecordService {
         return borrowRecordRepository.countByStatus("BORROWED");
     }
 
+    /**
+     * Periodically mark overdue records (runs every hour).
+     * Also called on application startup.
+     */
+    @Transactional
+    @Scheduled(fixedRate = 3600000)
+    public void checkAndUpdateOverdueRecords() {
+        List<BorrowRecord> overdueRecords = borrowRecordRepository.findOverdueRecords();
+        for (BorrowRecord record : overdueRecords) {
+            // Only mark as OVERDUE if currently BORROWED and past due date
+            if ("BORROWED".equals(record.getStatus()) &&
+                record.getDueDate() != null &&
+                record.getDueDate().isBefore(LocalDate.now())) {
+                record.setStatus("OVERDUE");
+                borrowRecordRepository.save(record);
+            }
+        }
+        if (!overdueRecords.isEmpty()) {
+            org.slf4j.LoggerFactory.getLogger(getClass()).info("逾期记录更新: {} 条标记为逾期", overdueRecords.size());
+        }
+    }
 
     }

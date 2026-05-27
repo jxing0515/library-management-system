@@ -3,16 +3,22 @@
     <div class="page-header">
       <h2 class="page-title">借阅管理</h2>
       <div class="header-actions">
-        <el-select v-model="filterUser" placeholder="选择用户" clearable style="width:170px" @change="loadData">
-          <el-option v-for="u in users" :key="u.id" :label="u.displayName || u.username" :value="u.id" />
-        </el-select>
+        <el-input
+          v-model="filterKeyword"
+          placeholder="搜索书名 / 借阅人"
+          clearable
+          style="width:200px"
+          @keyup.enter="loadData"
+        >
+          <template #prefix><el-icon><Search /></el-icon></template>
+        </el-input>
         <el-select v-model="filterStatus" placeholder="借阅状态" clearable style="width:130px" @change="loadData">
           <el-option label="借出中" value="BORROWED" />
           <el-option label="已归还" value="RETURNED" />
           <el-option label="已逾期" value="OVERDUE" />
         </el-select>
-        <el-button @click="loadData">
-          <el-icon><Refresh /></el-icon>刷新
+        <el-button type="primary" @click="loadData">
+          <el-icon><Search /></el-icon>搜索
         </el-button>
       </div>
     </div>
@@ -27,7 +33,7 @@
 
       <el-empty v-if="records.length === 0 && !loading" description="暂无借阅记录" :image-size="120" />
 
-      <el-table v-else :data="records" stripe style="width:100%" v-loading="loading">
+      <el-table v-else :data="pagedRecords" stripe style="width:100%" v-loading="loading">
         <el-table-column label="ID" prop="id" width="60" />
         <el-table-column label="借阅人" width="120">
           <template #default="{ row }">{{ row.user?.displayName || row.user?.username }}</template>
@@ -65,28 +71,44 @@
           </template>
         </el-table-column>
       </el-table>
+
+      <div class="pagination-wrapper" v-if="records.length > pageSize">
+        <el-pagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :total="records.length"
+          :page-sizes="[10, 20, 50]"
+          layout="total, sizes, prev, pager, next, jumper"
+          background
+        />
+      </div>
     </el-card>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { searchBorrowRecords, returnBook, renewBook } from '@/api/borrow'
-import { getUsers } from '@/api/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const records = ref([])
-const users = ref([])
 const loading = ref(false)
-const filterUser = ref(null)
 const filterStatus = ref(null)
+const filterKeyword = ref('')
+const currentPage = ref(1)
+const pageSize = ref(10)
+const pagedRecords = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  return records.value.slice(start, start + pageSize.value)
+})
 
 async function loadData() {
   loading.value = true
+  currentPage.value = 1
   try {
     const params = {}
-    if (filterUser.value) params.userId = filterUser.value
     if (filterStatus.value) params.status = filterStatus.value
+    if (filterKeyword.value) params.keyword = filterKeyword.value
     const res = await searchBorrowRecords(params)
     if (res.code === 200) records.value = res.data
   } catch (e) {
@@ -139,12 +161,8 @@ async function handleRenew(record) {
   } catch (e) {}
 }
 
-onMounted(async () => {
+onMounted(() => {
   loadData()
-  try {
-    const res = await getUsers()
-    if (res.code === 200) users.value = res.data
-  } catch (e) {}
 })
 </script>
 

@@ -41,11 +41,11 @@ var PageProfile = (function() {
             '<span class="setting-label">用户名</span>' +
             '<span class="setting-value">' + Utils.escapeHtml(user.username) + '</span>' +
           '</div>' +
-          '<div class="setting-item">' +
+          '<div class="setting-item" onclick="PageProfile.showEditField(\'email\')">' +
             '<span class="setting-label">邮箱</span>' +
             '<span class="setting-value">' + Utils.escapeHtml(user.email || '未设置') + '</span>' +
           '</div>' +
-          '<div class="setting-item">' +
+          '<div class="setting-item" onclick="PageProfile.showEditField(\'phone\')">' +
             '<span class="setting-label">手机号</span>' +
             '<span class="setting-value">' + Utils.escapeHtml(user.phone || '未设置') + '</span>' +
           '</div>' +
@@ -99,6 +99,22 @@ var PageProfile = (function() {
           '<div class="modal-footer">' +
             '<div class="modal-btn" onclick="PageProfile.closeEditName()">取消</div>' +
             '<div class="modal-btn primary" id="editNameSaveBtn">保存</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+
+      // Edit field modal (reusable for email / phone)
+      '<div class="modal-overlay" id="editFieldModal" style="display:none">' +
+        '<div class="modal-box">' +
+          '<div class="modal-header" id="editFieldTitle">修改</div>' +
+          '<div class="modal-body">' +
+            '<div class="form-group">' +
+              '<input class="form-input" id="editFieldInput" type="text" placeholder="请输入" />' +
+            '</div>' +
+          '</div>' +
+          '<div class="modal-footer">' +
+            '<div class="modal-btn" onclick="PageProfile.closeEditField()">取消</div>' +
+            '<div class="modal-btn primary" id="editFieldSaveBtn">保存</div>' +
           '</div>' +
         '</div>' +
       '</div>';
@@ -285,5 +301,87 @@ var PageProfile = (function() {
       });
   }
 
-  return { init: init, showEditName: showEditName, closeEditName: closeEditName };
+  // ============================================================
+  // Edit Field (email / phone)
+  // ============================================================
+  var _editFieldType = null;
+
+  function showEditField(field) {
+    _editFieldType = field;
+    var user = Store.getUser();
+    var labels = { email: '邮箱', phone: '手机号' };
+    var label = labels[field] || field;
+    var currentValue = user[field] || '';
+
+    document.getElementById('editFieldTitle').textContent = '修改' + label;
+    document.getElementById('editFieldInput').value = currentValue;
+    document.getElementById('editFieldInput').placeholder = '请输入' + label;
+    if (field === 'email') {
+      document.getElementById('editFieldInput').type = 'email';
+    } else {
+      document.getElementById('editFieldInput').type = 'tel';
+    }
+    document.getElementById('editFieldModal').style.display = 'flex';
+
+    // Close on overlay click
+    document.getElementById('editFieldModal').addEventListener('click', function(e) {
+      if (e.target === this) closeEditField();
+    });
+
+    // Enter to save
+    document.getElementById('editFieldInput').onkeydown = function(e) {
+      if (e.key === 'Enter') saveField();
+    };
+
+    // Save button
+    document.getElementById('editFieldSaveBtn').onclick = saveField;
+  }
+
+  function closeEditField() {
+    document.getElementById('editFieldModal').style.display = 'none';
+    _editFieldType = null;
+  }
+
+  function saveField() {
+    var field = _editFieldType;
+    if (!field) return;
+
+    var labels = { email: '邮箱', phone: '手机号' };
+    var label = labels[field] || field;
+
+    var value = document.getElementById('editFieldInput').value.trim();
+    if (!value) { Utils.showToast('请输入' + label); return; }
+
+    if (field === 'email' && value.indexOf('@') === -1) {
+      Utils.showToast('请输入有效的邮箱地址');
+      return;
+    }
+    if (field === 'phone' && !/^1\d{10}$/.test(value)) {
+      Utils.showToast('请输入有效的手机号（11位，以1开头）');
+      return;
+    }
+
+    var updateData = {};
+    updateData[field] = value;
+
+    var user = Store.getUser();
+    API.updateUser(user.id, updateData)
+      .then(function(res) {
+        if (res.code === 200) {
+          user[field] = value;
+          Store.setUser(user, Store.getToken());
+          Utils.showToast(label + '更新成功');
+          closeEditField();
+          render();
+          bindEvents();
+        } else {
+          Utils.showToast(res.message || '更新失败');
+        }
+      })
+      .catch(function(err) {
+        Utils.showToast(err.message || '更新失败');
+      });
+  }
+
+  return { init: init, showEditName: showEditName, closeEditName: closeEditName, showEditField: showEditField, closeEditField: closeEditField };
 })();

@@ -4,6 +4,7 @@
 var PageBorrows = (function() {
   var borrows = [];
   var selectedBorrow = null;
+  var filterStatus = '';
 
   function init() {
     render();
@@ -22,6 +23,12 @@ var PageBorrows = (function() {
             '<input type="text" id="borrowSearchInput" placeholder="搜索书名/用户名" />' +
           '</div>' +
           '<button class="search-btn" id="borrowSearchBtn">搜索</button>' +
+        '</div>' +
+        '<div class="filter-row" id="borrowStatusFilters">' +
+          '<span class="filter-tag active" data-status="">全部</span>' +
+          '<span class="filter-tag" data-status="BORROWED">借出中</span>' +
+          '<span class="filter-tag" data-status="OVERDUE">逾期</span>' +
+          '<span class="filter-tag" data-status="RETURNED">已归还</span>' +
         '</div>' +
         '<div id="borrowList">' +
           '<div class="loading-overlay"><div class="loading-spinner"></div>加载中...</div>' +
@@ -46,13 +53,27 @@ var PageBorrows = (function() {
     document.getElementById('borrowSearchInput').addEventListener('keydown', function(e) {
       if (e.key === 'Enter') handleSearch();
     });
+
+    // Status filter via delegation
+    document.getElementById('borrows-content').addEventListener('click', function(e) {
+      var statusEl = e.target.closest('[data-status]');
+      if (statusEl) {
+        document.querySelectorAll('#borrowStatusFilters .filter-tag').forEach(function(t) { t.classList.remove('active'); });
+        statusEl.classList.add('active');
+        filterStatus = statusEl.getAttribute('data-status');
+        handleSearch();
+      }
+    });
   }
 
   function loadBorrows() {
     var listEl = document.getElementById('borrowList');
     listEl.innerHTML = '<div class="loading-overlay"><div class="loading-spinner"></div>加载中...</div>';
 
-    API.getBorrowRecords()
+    var params = {};
+    if (filterStatus) params.status = filterStatus;
+
+    API.searchBorrowRecords(params)
       .then(function(res) {
         if (res.code === 200) {
           borrows = (res.data || []).sort(function(a, b) {
@@ -113,8 +134,28 @@ var PageBorrows = (function() {
   }
 
   function handleSearch() {
-    // Backend search only supports userId/status, so just reload
-    loadBorrows();
+    var keyword = document.getElementById('borrowSearchInput').value.trim();
+    var listEl = document.getElementById('borrowList');
+    listEl.innerHTML = '<div class="loading-overlay"><div class="loading-spinner"></div>搜索中...</div>';
+
+    var params = {};
+    if (keyword) params.keyword = keyword;
+    if (filterStatus) params.status = filterStatus;
+
+    API.searchBorrowRecords(params)
+      .then(function(res) {
+        if (res.code === 200) {
+          borrows = (res.data || []).sort(function(a, b) {
+            var da = a.createdAt || a.borrowDate || '';
+            var db = b.createdAt || b.borrowDate || '';
+            return da > db ? -1 : da < db ? 1 : 0;
+          });
+          renderBorrows();
+        }
+      })
+      .catch(function() {
+        listEl.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">搜索失败</div></div>';
+      });
   }
 
   function showDetail(borrow) {

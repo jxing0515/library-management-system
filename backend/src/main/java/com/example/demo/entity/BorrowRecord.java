@@ -37,6 +37,9 @@ public class BorrowRecord {
     @Column(nullable = false, length = 20)
     private String status; // BORROWED, RETURNED, OVERDUE
 
+    @Column(name = "renew_count")
+    private Integer renewCount = 0;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

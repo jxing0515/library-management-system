@@ -20,9 +20,13 @@ public interface BorrowRecordRepository extends JpaRepository<BorrowRecord, Long
     @Query("SELECT b FROM BorrowRecord b WHERE " +
            "(:userId IS NULL OR b.user.id = :userId) " +
            "AND (:status IS NULL OR b.status = :status) " +
+           "AND (:keyword IS NULL OR b.book.title LIKE CONCAT('%', :keyword, '%') OR b.user.displayName LIKE CONCAT('%', :keyword, '%') OR b.user.username LIKE CONCAT('%', :keyword, '%')) " +
            "ORDER BY b.createdAt DESC")
-    List<BorrowRecord> searchRecords(@Param("userId") Long userId, @Param("status") String status);
+    List<BorrowRecord> searchRecords(@Param("userId") Long userId, @Param("status") String status, @Param("keyword") String keyword);
 
     @Query("SELECT COUNT(b) FROM BorrowRecord b WHERE b.status = 'BORROWED' AND b.dueDate < CURRENT_DATE")
     long countOverdueRecords();
+
+    @Query("SELECT b FROM BorrowRecord b WHERE b.status = 'BORROWED' AND b.dueDate < CURRENT_DATE")
+    List<BorrowRecord> findOverdueRecords();
 }

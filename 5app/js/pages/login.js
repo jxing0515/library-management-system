@@ -162,6 +162,8 @@ var PageLogin = (function() {
     if (!password || password.length < 6) { Utils.showToast('密码至少 6 位'); return; }
     if (password !== confirm) { Utils.showToast('两次输入的密码不一致'); return; }
     if (!email && !phone) { Utils.showToast('手机号或邮箱至少填写一项'); return; }
+    if (email && email.indexOf('@') === -1) { Utils.showToast('请输入有效的邮箱地址'); return; }
+    if (phone && !/^1\d{10}$/.test(phone)) { Utils.showToast('请输入有效的手机号（11位，以1开头）'); return; }
 
     var btn = document.getElementById('registerBtn');
     btn.disabled = true;

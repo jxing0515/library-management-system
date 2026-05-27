@@ -56,7 +56,7 @@
     <template v-else>
       <div class="welcome-banner">
         <div class="welcome-content">
-          <el-avatar :size="48" style="background:#409eff;font-size:20px;flex-shrink:0">
+          <el-avatar :size="48" :src="userStore.user?.avatar || ''" style="font-size:20px;flex-shrink:0">
             {{ userStore.user?.displayName?.charAt(0) || 'U' }}
           </el-avatar>
           <div>

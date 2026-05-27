@@ -37,6 +37,9 @@ public class AuthService {
         response.setUsername(user.getUsername());
         response.setDisplayName(user.getDisplayName());
         response.setRole(user.getRole());
+        response.setAvatar(user.getAvatar());
+        response.setEmail(user.getEmail());
+        response.setPhone(user.getPhone());
         response.setToken(generateToken(user));
         return response;
     }
@@ -70,6 +73,9 @@ public class AuthService {
         response.setUsername(user.getUsername());
         response.setDisplayName(user.getDisplayName());
         response.setRole(user.getRole());
+        response.setAvatar(user.getAvatar());
+        response.setEmail(user.getEmail());
+        response.setPhone(user.getPhone());
         response.setToken(generateToken(user));
         return response;
     }

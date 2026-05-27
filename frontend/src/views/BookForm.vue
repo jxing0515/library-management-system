@@ -110,7 +110,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getBook, createBook, updateBook, uploadCover } from '@/api/book'
+import { getBook, createBook, updateBook, uploadCover, deleteCover } from '@/api/book'
 import { getCategories } from '@/api/category'
 import { ElMessage } from 'element-plus'
 
@@ -138,6 +138,7 @@ const form = reactive({
 const coverPreview = ref(null)
 const categories = ref([])
 const pendingCoverFile = ref(null)
+const coverRemoved = ref(false)
 
 const rules = {
   title: [{ required: true, message: '请输入书名', trigger: 'blur' }],
@@ -225,6 +226,10 @@ async function submitForm() {
 
     if (res.code === 200) {
       const bookId = isEdit.value ? route.params.id : res.data.id
+      // Remove cover if user clicked "移除封面" and no new cover is being uploaded
+      if (coverRemoved.value && !pendingCoverFile.value) {
+        await deleteCover(bookId)
+      }
       // Upload cover if selected
       if (pendingCoverFile.value) {
         const coverUrl = await uploadCoverFile(bookId)
@@ -251,6 +256,7 @@ function removeCover() {
   form.coverUrl = ''
   coverPreview.value = null
   pendingCoverFile.value = null
+  coverRemoved.value = true
 }
 
 onMounted(async () => {
@@ -275,6 +281,7 @@ onMounted(async () => {
         form.available = book.available ?? book.quantity ?? 1
         form.description = book.description || ''
         form.coverUrl = book.coverUrl || ''
+        coverRemoved.value = false
         if (book.coverUrl) {
           coverPreview.value = book.coverUrl
         }

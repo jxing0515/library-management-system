@@ -244,16 +244,11 @@ var Utils = (function() {
    * Resolve image URL - prefix relative paths with backend origin
    * URL 形如 /uploads/covers/xxx.jpg 需要拼上后端地址
    */
-  var _backendOrigin = null;
   function getBackendOrigin() {
-    if (_backendOrigin) return _backendOrigin;
-    // Use API's current base URL (which has auto-fallback logic)
     var base = (typeof API !== 'undefined' && API.getCurrentBaseUrl)
       ? API.getCurrentBaseUrl()
       : 'http://localhost:8081/api';
-    // Strip trailing /api or /api/ to get origin
-    _backendOrigin = base.replace(/\/api\/?$/, '');
-    return _backendOrigin;
+    return base.replace(/\/api\/?$/, '');
   }
 
   function resolveImageUrl(url) {

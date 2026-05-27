@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.UUID;
 
@@ -93,14 +94,47 @@ public class BookController {
                 dir.mkdirs();
             }
             Path filePath = Paths.get(uploadDir, filename);
-            Files.copy(file.getInputStream(), filePath);
+            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
             String coverUrl = "/uploads/covers/" + filename;
-            var book = bookService.findById(id);
-            book.setCoverUrl(coverUrl);
-            bookService.updateBook(book);
+            try {
+                var book = bookService.findById(id);
+                book.setCoverUrl(coverUrl);
+                bookService.updateBook(book);
+            } catch (Exception e) {
+                // DB update failed, clean up orphaned file
+                Files.deleteIfExists(filePath);
+                throw e;
+            }
             return ApiResponse.success("封面上传成功", coverUrl);
         } catch (IOException e) {
             return ApiResponse.error("封面上传失败: " + e.getMessage());
+        } catch (Exception e) {
+            return ApiResponse.error("封面上传失败: " + e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{id}/cover")
+    public ApiResponse<Void> deleteCover(@PathVariable Long id) {
+        try {
+            var book = bookService.findById(id);
+            String coverUrl = book.getCoverUrl();
+
+            if (coverUrl == null || coverUrl.isEmpty()) {
+                return ApiResponse.success("封面已移除", null);
+            }
+
+            // Delete the physical file from disk
+            String fileName = coverUrl.substring(coverUrl.lastIndexOf("/") + 1);
+            Path filePath = Paths.get("uploads/covers", fileName);
+            Files.deleteIfExists(filePath);
+
+            // Clear cover_url in database
+            book.setCoverUrl(null);
+            bookService.updateBook(book);
+
+            return ApiResponse.success("封面已移除", null);
+        } catch (Exception e) {
+            return ApiResponse.error("移除封面失败: " + e.getMessage());
         }
     }
 }

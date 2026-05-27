@@ -29,5 +29,6 @@ logging:
 ai:
   api:
     key: ${AI_API_KEY:sk-your-api-key}
-    url: ${AI_API_URL:https://api.hunyuan.cloud.tencent.com/v1/chat/completions}
-    model: ${AI_MODEL:hunyuan-lite}
+    url: https://api.deepseek.com/chat/completions
+
+    model: deepseek-v4-flash

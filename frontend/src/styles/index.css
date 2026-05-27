@@ -116,6 +116,19 @@ body {
   opacity: 0;
 }
 
+/* ==================== 分页器 ==================== */
+.pagination-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 20px 0 8px;
+}
+.dark-mode .pagination-wrapper {
+  --el-pagination-bg-color: var(--card-bg);
+  --el-pagination-text-color: var(--text-color);
+  --el-pagination-button-bg-color: var(--card-bg);
+  --el-pagination-button-hover-bg-color: var(--bg-secondary);
+}
+
 /* ==================== 通用工具类 ==================== */
 .text-center { text-align: center; }
 .text-right { text-align: right; }
@@ -208,7 +221,9 @@ body {
 .dark-mode .form-card,
 .dark-mode .info-card,
 .dark-mode .book-card,
-.dark-mode .cat-card {
+.dark-mode .cat-card,
+.dark-mode .fav-card,
+.dark-mode .rec-card {
   background: var(--card-bg) !important;
   background: var(--card-bg);
   border-color: var(--border-color);
@@ -245,8 +260,11 @@ body {
   background: rgba(64,158,255,0.12) !important;
 }
 
-.dark-mode .book-cover {
-  background: linear-gradient(135deg, #162447, #1f2940);
+.dark-mode .book-cover,
+.dark-mode .fav-card-cover,
+.dark-mode .rec-card-cover,
+.dark-mode .detail-cover {
+  background: linear-gradient(135deg, #162447, #1f2940) !important;
 }
 
 .dark-mode .quick-stats {
@@ -408,7 +426,30 @@ body {
 
 /* ---- Element Plus 标签 ---- */
 .dark-mode .el-tag {
-  --el-tag-text-color: #fff !important;
+  --el-tag-text-color: #fff;
+}
+.dark-mode .el-tag.el-tag--dark {
+  --el-tag-text-color: #fff;
+}
+/* Plain tags in dark mode: force solid backgrounds & bright text */
+.dark-mode .el-tag.el-tag--plain {
+  border-color: transparent !important;
+}
+.dark-mode .el-tag.el-tag--plain.el-tag--info {
+  background: #2a3a5c !important;
+  color: #c8c9cc !important;
+}
+.dark-mode .el-tag.el-tag--plain.el-tag--success {
+  background: #1a3a1a !important;
+  color: #67c23a !important;
+}
+.dark-mode .el-tag.el-tag--plain.el-tag--danger {
+  background: #3a1a1a !important;
+  color: #f56c6c !important;
+}
+.dark-mode .el-tag.el-tag--plain.el-tag--warning {
+  background: #3a2a0a !important;
+  color: #e6a23c !important;
 }
 
 /* ---- Element Plus 富文本/弹窗/通知 ---- */

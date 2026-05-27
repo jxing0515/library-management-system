@@ -2,8 +2,10 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.ApiResponse;
 import com.example.demo.entity.User;
+import com.example.demo.service.AuthService;
 import com.example.demo.service.UserService;
 import org.springframework.web.bind.annotation.*;
+import java.util.Map;
 import org.springframework.web.multipart.MultipartFile;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.File;
@@ -11,6 +13,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,9 +22,11 @@ import java.util.UUID;
 public class UserController {
 
     private final UserService userService;
+    private final AuthService authService;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, AuthService authService) {
         this.userService = userService;
+        this.authService = authService;
     }
 
     @GetMapping
@@ -99,20 +104,50 @@ public class UserController {
 
             // Save file
             Path filePath = Paths.get(uploadDir, filename);
-            Files.copy(file.getInputStream(), filePath);
+            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
             // Build avatar URL
             String avatarUrl = "/uploads/avatars/" + filename;
 
             // Update user entity
-            var user = userService.findById(id);
-            user.setAvatar(avatarUrl);
-            userService.updateUser(user);
+            try {
+                var user = userService.findById(id);
+                user.setAvatar(avatarUrl);
+                userService.updateUser(user);
+            } catch (Exception e) {
+                // DB update failed, clean up orphaned file
+                Files.deleteIfExists(filePath);
+                throw e;
+            }
 
             return ApiResponse.success("头像上传成功", avatarUrl);
         } catch (Exception e) {
             e.printStackTrace();
             return ApiResponse.error("头像上传失败: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/{id}/password")
+    public ApiResponse<Void> updatePassword(@PathVariable Long id, @RequestBody Map<String, String> body, @RequestHeader("Authorization") String token) {
+        try {
+            String newPassword = body.get("password");
+            if (newPassword == null || newPassword.isEmpty()) {
+                return ApiResponse.error("密码不能为空");
+            }
+            if (newPassword.length() < 6) {
+                return ApiResponse.error("密码至少 6 位");
+            }
+
+            // Only the user themselves can change their password
+            User currentUser = authService.validateToken(token);
+            if (currentUser == null || !currentUser.getId().equals(id)) {
+                return ApiResponse.error(403, "无权修改其他用户的密码");
+            }
+
+            userService.updatePassword(id, newPassword);
+            return ApiResponse.success("密码修改成功", null);
+        } catch (RuntimeException e) {
+            return ApiResponse.error(e.getMessage());
         }
     }
 

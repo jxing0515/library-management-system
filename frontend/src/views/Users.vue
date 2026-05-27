@@ -10,7 +10,7 @@
     <el-card shadow="never" style="border-radius:12px">
       <el-empty v-if="users.length === 0 && !loading" description="暂无用户" :image-size="120" />
 
-      <el-table v-else :data="users" stripe style="width:100%" v-loading="loading">
+      <el-table v-else :data="pagedUsers" stripe style="width:100%" v-loading="loading">
         <el-table-column label="ID" prop="id" width="60" />
         <el-table-column label="用户名" prop="username" width="130" />
         <el-table-column label="显示名" prop="displayName" width="120">
@@ -51,6 +51,17 @@
           </template>
         </el-table-column>
       </el-table>
+
+      <div class="pagination-wrapper" v-if="users.length > pageSize">
+        <el-pagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :total="users.length"
+          :page-sizes="[10, 20, 50]"
+          layout="total, sizes, prev, pager, next, jumper"
+          background
+        />
+      </div>
     </el-card>
 
     <!-- Create/Edit Dialog -->
@@ -68,8 +79,8 @@
             </el-form-item>
           </el-col>
         </el-row>
-        <el-form-item label="密码" prop="password">
-          <el-input v-model="form.password" type="password" show-password :placeholder="isEdit ? '留空则不修改密码' : '请输入密码'" />
+        <el-form-item v-if="!isEdit" label="密码" prop="password">
+          <el-input v-model="form.password" type="password" show-password placeholder="请输入密码" />
         </el-form-item>
         <el-row :gutter="20">
           <el-col :span="12">
@@ -114,7 +125,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { getUsers, getUser, createUser, updateUser, deleteUser } from '@/api/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
@@ -126,6 +137,12 @@ const dialogVisible = ref(false)
 const isEdit = ref(false)
 const editId = ref(null)
 const formRef = ref(null)
+const currentPage = ref(1)
+const pageSize = ref(10)
+const pagedUsers = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  return users.value.slice(start, start + pageSize.value)
+})
 
 const form = reactive({
   username: '', displayName: '', password: '', role: 'READER', status: 'ACTIVE', email: '', phone: ''
@@ -147,6 +164,7 @@ function roleLabel(role) {
 
 async function loadUsers() {
   loading.value = true
+  currentPage.value = 1
   try {
     const res = await getUsers()
     if (res.code === 200) users.value = res.data
@@ -183,7 +201,6 @@ async function handleSubmit() {
   submitting.value = true
   try {
     const data = { ...form }
-    if (isEdit.value && !data.password) delete data.password
     const res = isEdit.value
       ? await updateUser(editId.value, data)
       : await createUser(data)
